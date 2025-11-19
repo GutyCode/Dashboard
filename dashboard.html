@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Ventas - Productos de Fútbol</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --accent: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            animation: pulse 8s infinite linear;
+        }
+
+        @keyframes pulse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #64748b;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        select, input {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            background: white;
+            transition: var(--transition);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            grid-column: span 1;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .data-table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .positive {
+            color: var(--success);
+        }
+
+        .negative {
+            color: var(--danger);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+            gap: 10px;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--primary);
+        }
+
+        .pagination button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-card {
+                grid-column: span 1;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dashboard de Ventas - Productos de Fútbol</h1>
+            <p class="subtitle">Análisis de ventas mensuales por categoría y producto</p>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card stat-card">
+                <div class="stat-label">Ingresos Totales</div>
+                <div class="stat-value" id="totalRevenue">$0</div>
+                <div class="stat-label">En el período seleccionado</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Productos Vendidos</div>
+                <div class="stat-value" id="totalProducts">0</div>
+                <div class="stat-label">Unidades totales</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Categorías</div>
+                <div class="stat-value" id="totalCategories">0</div>
+                <div class="stat-label">Diferentes categorías</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Producto Más Vendido</div>
+                <div class="stat-value" id="topProduct">-</div>
+                <div class="stat-label">Por unidades</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="monthFilter">Filtrar por Mes</label>
+                <select id="monthFilter">
+                    <option value="all">Todos los meses</option>
+                    <option value="Enero">Enero</option>
+                    <option value="Febrero">Febrero</option>
+                    <option value="Marzo">Marzo</option>
+                    <option value="Abril">Abril</option>
+                    <option value="Mayo">Mayo</option>
+                    <option value="Junio">Junio</option>
+                    <option value="Julio">Julio</option>
+                    <option value="Agosto">Agosto</option>
+                    <option value="Septiembre">Septiembre</option>
+                    <option value="Octubre">Octubre</option>
+                    <option value="Noviembre">Noviembre</option>
+                    <option value="Diciembre">Diciembre</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="categoryFilter">Filtrar por Categoría</label>
+                <select id="categoryFilter">
+                    <option value="all">Todas las categorías</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="productFilter">Filtrar por Producto</label>
+                <select id="productFilter">
+                    <option value="all">Todos los productos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="searchFilter">Buscar producto</label>
+                <input type="text" id="searchFilter" placeholder="Escribe para buscar...">
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="card chart-card">
+                <div class="chart-title">Ventas Mensuales por Categoría</div>
+                <div class="chart-container">
+                    <canvas id="monthlySalesChart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <div class="chart-title">Distribución de Ventas por Categoría</div>
+                <div class="chart-container">
+                    <canvas id="categoryDistributionChart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <div class="chart-title">Top 10 Productos Más Vendidos</div>
+                <div class="chart-container">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <div class="chart-title">Tendencia de Ventas Mensuales</div>
+                <div class="chart-container">
+                    <canvas id="salesTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="chart-title">Detalle de Ventas</div>
+            <div class="data-table-container">
+                <table id="salesTable">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Cantidad Vendida</th>
+                            <th>Ingresos (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody">
+                        <!-- Los datos se cargarán aquí con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button id="prevPage">Anterior</button>
+                <span id="pageInfo">Página 1 de 1</span>
+                <button id="nextPage">Siguiente</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>Dashboard de Ventas de Productos de Fútbol &copy; 2024</p>
+        </footer>
+    </div>
+
+    <script>
+        // Datos de ventas (simulados para este ejemplo)
+        const salesData = [
+            { Mes: 'Enero', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 45, Ingresos_USD: 11250 },
+            { Mes: 'Enero', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 120, Ingresos_USD: 10200 },
+            { Mes: 'Enero', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 85, Ingresos_USD: 13600 },
+            { Mes: 'Enero', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 110, Ingresos_USD: 6050 },
+            { Mes: 'Enero', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 30, Ingresos_USD: 4950 },
+            { Mes: 'Enero', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 95, Ingresos_USD: 3800 },
+            { Mes: 'Enero', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 180, Ingresos_USD: 4500 },
+            { Mes: 'Enero', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 25, Ingresos_USD: 3000 },
+            { Mes: 'Enero', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 200, Ingresos_USD: 3600 },
+            { Mes: 'Enero', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 40, Ingresos_USD: 1200 },
+            { Mes: 'Enero', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 150, Ingresos_USD: 2250 },
+            { Mes: 'Enero', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 65, Ingresos_USD: 2275 },
+            
+            { Mes: 'Febrero', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 38, Ingresos_USD: 9500 },
+            { Mes: 'Febrero', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 105, Ingresos_USD: 8925 },
+            { Mes: 'Febrero', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 92, Ingresos_USD: 14720 },
+            { Mes: 'Febrero', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 125, Ingresos_USD: 6875 },
+            { Mes: 'Febrero', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 28, Ingresos_USD: 4620 },
+            { Mes: 'Febrero', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 110, Ingresos_USD: 4400 },
+            { Mes: 'Febrero', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 165, Ingresos_USD: 4125 },
+            { Mes: 'Febrero', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 22, Ingresos_USD: 2640 },
+            { Mes: 'Febrero', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 185, Ingresos_USD: 3330 },
+            { Mes: 'Febrero', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 35, Ingresos_USD: 1050 },
+            { Mes: 'Febrero', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 140, Ingresos_USD: 2100 },
+            { Mes: 'Febrero', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 75, Ingresos_USD: 2625 },
+            
+            { Mes: 'Marzo', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 52, Ingresos_USD: 13000 },
+            { Mes: 'Marzo', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 135, Ingresos_USD: 11475 },
+            { Mes: 'Marzo', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 78, Ingresos_USD: 12480 },
+            { Mes: 'Marzo', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 140, Ingresos_USD: 7700 },
+            { Mes: 'Marzo', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 35, Ingresos_USD: 5775 },
+            { Mes: 'Marzo', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 125, Ingresos_USD: 5000 },
+            { Mes: 'Marzo', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 195, Ingresos_USD: 4875 },
+            { Mes: 'Marzo', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 30, Ingresos_USD: 3600 },
+            { Mes: 'Marzo', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 220, Ingresos_USD: 3960 },
+            { Mes: 'Marzo', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 45, Ingresos_USD: 1350 },
+            { Mes: 'Marzo', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 160, Ingresos_USD: 2400 },
+            { Mes: 'Marzo', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 85, Ingresos_USD: 2975 },
+            
+            { Mes: 'Abril', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 48, Ingresos_USD: 12000 },
+            { Mes: 'Abril', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 128, Ingresos_USD: 10880 },
+            { Mes: 'Abril', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 88, Ingresos_USD: 14080 },
+            { Mes: 'Abril', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 132, Ingresos_USD: 7260 },
+            { Mes: 'Abril', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 32, Ingresos_USD: 5280 },
+            { Mes: 'Abril', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 118, Ingresos_USD: 4720 },
+            { Mes: 'Abril', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 188, Ingresos_USD: 4700 },
+            { Mes: 'Abril', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 28, Ingresos_USD: 3360 },
+            { Mes: 'Abril', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 210, Ingresos_USD: 3780 },
+            { Mes: 'Abril', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 42, Ingresos_USD: 1260 },
+            { Mes: 'Abril', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 155, Ingresos_USD: 2325 },
+            { Mes: 'Abril', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 80, Ingresos_USD: 2800 },
+            
+            { Mes: 'Mayo', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 42, Ingresos_USD: 10500 },
+            { Mes: 'Mayo', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 115, Ingresos_USD: 9775 },
+            { Mes: 'Mayo', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 95, Ingresos_USD: 15200 },
+            { Mes: 'Mayo', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 145, Ingresos_USD: 7975 },
+            { Mes: 'Mayo', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 38, Ingresos_USD: 6270 },
+            { Mes: 'Mayo', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 135, Ingresos_USD: 5400 },
+            { Mes: 'Mayo', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 205, Ingresos_USD: 5125 },
+            { Mes: 'Mayo', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 25, Ingresos_USD: 3000 },
+            { Mes: 'Mayo', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 195, Ingresos_USD: 3510 },
+            { Mes: 'Mayo', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 38, Ingresos_USD: 1140 },
+            { Mes: 'Mayo', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 145, Ingresos_USD: 2175 },
+            { Mes: 'Mayo', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 90, Ingresos_USD: 3150 },
+            
+            { Mes: 'Junio', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 58, Ingresos_USD: 14500 },
+            { Mes: 'Junio', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 155, Ingresos_USD: 13175 },
+            { Mes: 'Junio', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 105, Ingresos_USD: 16800 },
+            { Mes: 'Junio', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 165, Ingresos_USD: 9075 },
+            { Mes: 'Junio', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 45, Ingresos_USD: 7425 },
+            { Mes: 'Junio', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 155, Ingresos_USD: 6200 },
+            { Mes: 'Junio', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 235, Ingresos_USD: 5875 },
+            { Mes: 'Junio', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 35, Ingresos_USD: 4200 },
+            { Mes: 'Junio', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 245, Ingresos_USD: 4410 },
+            { Mes: 'Junio', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 55, Ingresos_USD: 1650 },
+            { Mes: 'Junio', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 180, Ingresos_USD: 2700 },
+            { Mes: 'Junio', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 110, Ingresos_USD: 3850 },
+            
+            { Mes: 'Julio', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 62, Ingresos_USD: 15500 },
+            { Mes: 'Julio', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 165, Ingresos_USD: 14025 },
+            { Mes: 'Julio', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 115, Ingresos_USD: 18400 },
+            { Mes: 'Julio', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 175, Ingresos_USD: 9625 },
+            { Mes: 'Julio', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 48, Ingresos_USD: 7920 },
+            { Mes: 'Julio', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 165, Ingresos_USD: 6600 },
+            { Mes: 'Julio', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 250, Ingresos_USD: 6250 },
+            { Mes: 'Julio', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 38, Ingresos_USD: 4560 },
+            { Mes: 'Julio', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 260, Ingresos_USD: 4680 },
+            { Mes: 'Julio', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 60, Ingresos_USD: 1800 },
+            { Mes: 'Julio', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 195, Ingresos_USD: 2925 },
+            { Mes: 'Julio', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 120, Ingresos_USD: 4200 },
+            
+            { Mes: 'Agosto', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 68, Ingresos_USD: 17000 },
+            { Mes: 'Agosto', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 180, Ingresos_USD: 15300 },
+            { Mes: 'Agosto', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 125, Ingresos_USD: 20000 },
+            { Mes: 'Agosto', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 190, Ingresos_USD: 10450 },
+            { Mes: 'Agosto', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 52, Ingresos_USD: 8580 },
+            { Mes: 'Agosto', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 180, Ingresos_USD: 7200 },
+            { Mes: 'Agosto', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 270, Ingresos_USD: 6750 },
+            { Mes: 'Agosto', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 42, Ingresos_USD: 5040 },
+            { Mes: 'Agosto', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 280, Ingresos_USD: 5040 },
+            { Mes: 'Agosto', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 65, Ingresos_USD: 1950 },
+            { Mes: 'Agosto', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 210, Ingresos_USD: 3150 },
+            { Mes: 'Agosto', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 135, Ingresos_USD: 4725 },
+            
+            { Mes: 'Septiembre', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 55, Ingresos_USD: 13750 },
+            { Mes: 'Septiembre', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 148, Ingresos_USD: 12580 },
+            { Mes: 'Septiembre', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 108, Ingresos_USD: 17280 },
+            { Mes: 'Septiembre', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 168, Ingresos_USD: 9240 },
+            { Mes: 'Septiembre', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 42, Ingresos_USD: 6930 },
+            { Mes: 'Septiembre', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 148, Ingresos_USD: 5920 },
+            { Mes: 'Septiembre', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 228, Ingresos_USD: 5700 },
+            { Mes: 'Septiembre', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 35, Ingresos_USD: 4200 },
+            { Mes: 'Septiembre', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 235, Ingresos_USD: 4230 },
+            { Mes: 'Septiembre', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 52, Ingresos_USD: 1560 },
+            { Mes: 'Septiembre', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 178, Ingresos_USD: 2670 },
+            { Mes: 'Septiembre', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 115, Ingresos_USD: 4025 },
+            
+            { Mes: 'Octubre', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 50, Ingresos_USD: 12500 },
+            { Mes: 'Octubre', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 138, Ingresos_USD: 11730 },
+            { Mes: 'Octubre', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 98, Ingresos_USD: 15680 },
+            { Mes: 'Octubre', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 155, Ingresos_USD: 8525 },
+            { Mes: 'Octubre', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 38, Ingresos_USD: 6270 },
+            { Mes: 'Octubre', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 138, Ingresos_USD: 5520 },
+            { Mes: 'Octubre', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 215, Ingresos_USD: 5375 },
+            { Mes: 'Octubre', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 32, Ingresos_USD: 3840 },
+            { Mes: 'Octubre', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 225, Ingresos_USD: 4050 },
+            { Mes: 'Octubre', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 48, Ingresos_USD: 1440 },
+            { Mes: 'Octubre', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 165, Ingresos_USD: 2475 },
+            { Mes: 'Octubre', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 105, Ingresos_USD: 3675 },
+            
+            { Mes: 'Noviembre', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 45, Ingresos_USD: 11250 },
+            { Mes: 'Noviembre', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 125, Ingresos_USD: 10625 },
+            { Mes: 'Noviembre', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 88, Ingresos_USD: 14080 },
+            { Mes: 'Noviembre', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 142, Ingresos_USD: 7810 },
+            { Mes: 'Noviembre', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 35, Ingresos_USD: 5775 },
+            { Mes: 'Noviembre', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 125, Ingresos_USD: 5000 },
+            { Mes: 'Noviembre', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 198, Ingresos_USD: 4950 },
+            { Mes: 'Noviembre', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 28, Ingresos_USD: 3360 },
+            { Mes: 'Noviembre', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 205, Ingresos_USD: 3690 },
+            { Mes: 'Noviembre', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 42, Ingresos_USD: 1260 },
+            { Mes: 'Noviembre', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 152, Ingresos_USD: 2280 },
+            { Mes: 'Noviembre', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 95, Ingresos_USD: 3325 },
+            
+            { Mes: 'Diciembre', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 65, Ingresos_USD: 16250 },
+            { Mes: 'Diciembre', Producto: 'Botines Nike Mercurial Vapor 15 Academy', Categoria: 'Calzado', Cantidad_Vendida: 172, Ingresos_USD: 14620 },
+            { Mes: 'Diciembre', Producto: 'Camiseta Authentic PSG 2023/24', Categoria: 'Ropa', Cantidad_Vendida: 135, Ingresos_USD: 21600 },
+            { Mes: 'Diciembre', Producto: 'Pantalón de Entrenamiento Adidas Tiro 24', Categoria: 'Ropa', Cantidad_Vendida: 205, Ingresos_USD: 11275 },
+            { Mes: 'Diciembre', Producto: 'Balón Oficial Adidas Champions League Pro', Categoria: 'Balones', Cantidad_Vendida: 58, Ingresos_USD: 9570 },
+            { Mes: 'Diciembre', Producto: 'Balón de Entrenamiento Nike Premier Team', Categoria: 'Balones', Cantidad_Vendida: 195, Ingresos_USD: 7800 },
+            { Mes: 'Diciembre', Producto: 'Espinilleras Nike Mercurial Lite', Categoria: 'Protección', Cantidad_Vendida: 285, Ingresos_USD: 7125 },
+            { Mes: 'Diciembre', Producto: 'Guantes de Portero Uhlsport Eliminator Absolutegrip', Categoria: 'Equipamiento', Cantidad_Vendida: 45, Ingresos_USD: 5400 },
+            { Mes: 'Diciembre', Producto: 'Botellero Térmico Under Armour Squeeze', Categoria: 'Accesorios', Cantidad_Vendida: 295, Ingresos_USD: 5310 },
+            { Mes: 'Diciembre', Producto: 'Red de Entrenamiento Puma Fútbol', Categoria: 'Accesorios', Cantidad_Vendida: 72, Ingresos_USD: 2160 },
+            { Mes: 'Diciembre', Producto: 'Bomba de Aire para Balones Mikasa', Categoria: 'Accesorios', Cantidad_Vendida: 225, Ingresos_USD: 3375 },
+            { Mes: 'Diciembre', Producto: 'Conos de Entrenamiento (50 unidades)', Categoria: 'Accesorios', Cantidad_Vendida: 150, Ingresos_USD: 5250 }
+        ];
+
+        // Variables globales
+        let filteredData = [...salesData];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let charts = {};
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFilters();
+            updateDashboard();
+            renderTable();
+            initializeCharts();
+            
+            // Event listeners para filtros
+            document.getElementById('monthFilter').addEventListener('change', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('productFilter').addEventListener('change', applyFilters);
+            document.getElementById('searchFilter').addEventListener('input', applyFilters);
+            
+            // Event listeners para paginación
+            document.getElementById('prevPage').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', function() {
+                const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+        });
+
+        // Inicializar filtros
+        function initializeFilters() {
+            const categories = [...new Set(salesData.map(item => item.Categoria))];
+            const products = [...new Set(salesData.map(item => item.Producto))];
+            
+            const categoryFilter = document.getElementById('categoryFilter');
+            const productFilter = document.getElementById('productFilter');
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+            
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product;
+                option.textContent = product;
+                productFilter.appendChild(option);
+            });
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            const monthFilter = document.getElementById('monthFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const productFilter = document.getElementById('productFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            filteredData = salesData.filter(item => {
+                return (monthFilter === 'all' || item.Mes === monthFilter) &&
+                       (categoryFilter === 'all' || item.Categoria === categoryFilter) &&
+                       (productFilter === 'all' || item.Producto === productFilter) &&
+                       (searchFilter === '' || 
+                        item.Producto.toLowerCase().includes(searchFilter) ||
+                        item.Categoria.toLowerCase().includes(searchFilter));
+            });
+            
+            currentPage = 1;
+            updateDashboard();
+            renderTable();
+            updateCharts();
+        }
+
+        // Actualizar dashboard con estadísticas
+        function updateDashboard() {
+            const totalRevenue = filteredData.reduce((sum, item) => sum + item.Ingresos_USD, 0);
+            const totalProducts = filteredData.reduce((sum, item) => sum + item.Cantidad_Vendida, 0);
+            const categories = [...new Set(filteredData.map(item => item.Categoria))];
+            
+            // Encontrar el producto más vendido
+            const productSales = {};
+            filteredData.forEach(item => {
+                if (!productSales[item.Producto]) {
+                    productSales[item.Producto] = 0;
+                }
+                productSales[item.Producto] += item.Cantidad_Vendida;
+            });
+            
+            let topProduct = '';
+            let maxSales = 0;
+            for (const product in productSales) {
+                if (productSales[product] > maxSales) {
+                    maxSales = productSales[product];
+                    topProduct = product;
+                }
+            }
+            
+            document.getElementById('totalRevenue').textContent = `$${totalRevenue.toLocaleString()}`;
+            document.getElementById('totalProducts').textContent = totalProducts.toLocaleString();
+            document.getElementById('totalCategories').textContent = categories.length;
+            document.getElementById('topProduct').textContent = topProduct || '-';
+        }
+
+        // Renderizar tabla de datos
+        function renderTable() {
+            const tableBody = document.getElementById('salesTableBody');
+            const pageInfo = document.getElementById('pageInfo');
+            const prevButton = document.getElementById('prevPage');
+            const nextButton = document.getElementById('nextPage');
+            
+            // Calcular páginas
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            // Actualizar controles de paginación
+            pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = currentPage === totalPages;
+            
+            // Limpiar tabla
+            tableBody.innerHTML = '';
+            
+            // Llenar tabla con datos de la página actual
+            pageData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.Mes}</td>
+                    <td>${item.Producto}</td>
+                    <td>${item.Categoria}</td>
+                    <td>${item.Cantidad_Vendida.toLocaleString()}</td>
+                    <td>$${item.Ingresos_USD.toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Inicializar gráficos
+        function initializeCharts() {
+            const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+            const categoryDistributionCtx = document.getElementById('categoryDistributionChart').getContext('2d');
+            const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+            const salesTrendCtx = document.getElementById('salesTrendChart').getContext('2d');
+            
+            // Colores para las categorías
+            const categoryColors = {
+                'Calzado': '#3b82f6',
+                'Ropa': '#10b981',
+                'Balones': '#f59e0b',
+                'Protección': '#ef4444',
+                'Equipamiento': '#8b5cf6',
+                'Accesorios': '#06b6d4'
+            };
+            
+            // Gráfico de ventas mensuales por categoría
+            charts.monthlySales = new Chart(monthlySalesCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de distribución por categoría
+            charts.categoryDistribution = new Chart(categoryDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: []
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de top productos
+            charts.topProducts = new Chart(topProductsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Cantidad Vendida',
+                        data: [],
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de tendencia de ventas
+            charts.salesTrend = new Chart(salesTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Ingresos Totales',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            updateCharts();
+        }
+
+        // Actualizar gráficos con datos filtrados
+        function updateCharts() {
+            updateMonthlySalesChart();
+            updateCategoryDistributionChart();
+            updateTopProductsChart();
+            updateSalesTrendChart();
+        }
+
+        function updateMonthlySalesChart() {
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const categories = [...new Set(salesData.map(item => item.Categoria))];
+            
+            const datasets = categories.map(category => {
+                const data = months.map(month => {
+                    const monthData = filteredData.filter(item => 
+                        item.Mes === month && item.Categoria === category
+                    );
+                    return monthData.reduce((sum, item) => sum + item.Ingresos_USD, 0);
+                });
+                
+                return {
+                    label: category,
+                    data: data,
+                    backgroundColor: getCategoryColor(category)
+                };
+            });
+            
+            charts.monthlySales.data.labels = months;
+            charts.monthlySales.data.datasets = datasets;
+            charts.monthlySales.update();
+        }
+
+        function updateCategoryDistributionChart() {
+            const categories = [...new Set(filteredData.map(item => item.Categoria))];
+            const data = categories.map(category => {
+                return filteredData
+                    .filter(item => item.Categoria === category)
+                    .reduce((sum, item) => sum + item.Ingresos_USD, 0);
+            });
+            
+            const backgroundColors = categories.map(category => getCategoryColor(category));
+            
+            charts.categoryDistribution.data.labels = categories;
+            charts.categoryDistribution.data.datasets[0].data = data;
+            charts.categoryDistribution.data.datasets[0].backgroundColor = backgroundColors;
+            charts.categoryDistribution.update();
+        }
+
+        function updateTopProductsChart() {
+            // Agrupar ventas por producto
+            const productSales = {};
+            filteredData.forEach(item => {
+                if (!productSales[item.Producto]) {
+                    productSales[item.Producto] = 0;
+                }
+                productSales[item.Producto] += item.Cantidad_Vendida;
+            });
+            
+            // Ordenar productos por ventas y tomar los top 10
+            const sortedProducts = Object.entries(productSales)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            const productNames = sortedProducts.map(item => item[0]);
+            const productQuantities = sortedProducts.map(item => item[1]);
+            
+            charts.topProducts.data.labels = productNames;
+            charts.topProducts.data.datasets[0].data = productQuantities;
+            charts.topProducts.update();
+        }
+
+        function updateSalesTrendChart() {
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            
+            const monthlyRevenue = months.map(month => {
+                return filteredData
+                    .filter(item => item.Mes === month)
+                    .reduce((sum, item) => sum + item.Ingresos_USD, 0);
+            });
+            
+            charts.salesTrend.data.labels = months;
+            charts.salesTrend.data.datasets[0].data = monthlyRevenue;
+            charts.salesTrend.update();
+        }
+
+        function getCategoryColor(category) {
+            const colorMap = {
+                'Calzado': '#3b82f6',
+                'Ropa': '#10b981',
+                'Balones': '#f59e0b',
+                'Protección': '#ef4444',
+                'Equipamiento': '#8b5cf6',
+                'Accesorios': '#06b6d4'
+            };
+            
+            return colorMap[category] || '#6b7280';
+        }
+    </script>
+</body>
+</html>
