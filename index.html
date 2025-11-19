@@ -7,14 +7,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #1e3a8a;
-            --secondary: #3b82f6;
+            --primary: #3b82f6;
+            --secondary: #60a5fa;
             --accent: #f59e0b;
             --light: #f8fafc;
             --dark: #1e293b;
             --success: #10b981;
             --danger: #ef4444;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
             --transition: all 0.3s ease;
         }
 
@@ -26,19 +26,31 @@
         }
 
         body {
-            background-color: #f1f5f9;
-            color: var(--dark);
+            background-color: #0f172a;
+            color: var(--light);
             line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.8), rgba(59, 130, 246, 0.8));
             color: white;
             padding: 2rem;
             border-radius: 10px;
@@ -47,6 +59,8 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         header::before {
@@ -84,16 +98,19 @@
         }
 
         .card {
-            background: white;
+            background: rgba(30, 41, 59, 0.7);
             border-radius: 10px;
             padding: 1.5rem;
             box-shadow: var(--shadow);
             transition: var(--transition);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+            background: rgba(30, 41, 59, 0.9);
         }
 
         .stat-card {
@@ -112,7 +129,7 @@
 
         .stat-label {
             font-size: 1rem;
-            color: #64748b;
+            color: #94a3b8;
         }
 
         .filters {
@@ -130,21 +147,22 @@
         label {
             margin-bottom: 5px;
             font-weight: 600;
-            color: var(--dark);
+            color: var(--light);
         }
 
         select, input {
             padding: 10px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #334155;
             border-radius: 5px;
-            background: white;
+            background: rgba(30, 41, 59, 0.7);
+            color: var(--light);
             transition: var(--transition);
         }
 
         select:focus, input:focus {
             outline: none;
             border-color: var(--secondary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
         }
 
         .charts-container {
@@ -162,7 +180,7 @@
             font-size: 1.2rem;
             margin-bottom: 1rem;
             color: var(--primary);
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid #334155;
             padding-bottom: 0.5rem;
         }
 
@@ -185,18 +203,18 @@
         th, td {
             padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #334155;
         }
 
         th {
-            background-color: var(--primary);
+            background-color: rgba(30, 58, 138, 0.7);
             color: white;
             position: sticky;
             top: 0;
         }
 
         tr:hover {
-            background-color: #f1f5f9;
+            background-color: rgba(30, 41, 59, 0.5);
         }
 
         .positive {
@@ -229,7 +247,7 @@
         }
 
         .pagination button:disabled {
-            background: #94a3b8;
+            background: #475569;
             cursor: not-allowed;
         }
 
@@ -237,7 +255,7 @@
             text-align: center;
             margin-top: 2rem;
             padding: 1rem;
-            color: #64748b;
+            color: #94a3b8;
             font-size: 0.9rem;
         }
 
@@ -257,6 +275,8 @@
     </style>
 </head>
 <body>
+    <div id="particles-js"></div>
+    
     <div class="container">
         <header>
             <h1>Dashboard de Ventas - Productos de Fútbol</h1>
@@ -380,7 +400,98 @@
         </footer>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
+        // Configuración de partículas
+        particlesJS('particles-js', {
+            particles: {
+                number: {
+                    value: 80,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: "#3b82f6"
+                },
+                shape: {
+                    type: "circle",
+                    stroke: {
+                        width: 0,
+                        color: "#000000"
+                    }
+                },
+                opacity: {
+                    value: 0.5,
+                    random: true,
+                    anim: {
+                        enable: true,
+                        speed: 1,
+                        opacity_min: 0.1,
+                        sync: false
+                    }
+                },
+                size: {
+                    value: 3,
+                    random: true,
+                    anim: {
+                        enable: true,
+                        speed: 2,
+                        size_min: 0.1,
+                        sync: false
+                    }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#3b82f6",
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 1,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false,
+                    attract: {
+                        enable: false,
+                        rotateX: 600,
+                        rotateY: 1200
+                    }
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: "grab"
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: "push"
+                    },
+                    resize: true
+                },
+                modes: {
+                    grab: {
+                        distance: 140,
+                        line_linked: {
+                            opacity: 1
+                        }
+                    },
+                    push: {
+                        particles_nb: 4
+                    }
+                }
+            },
+            retina_detect: true
+        });
+
         // Datos de ventas (simulados para este ejemplo)
         const salesData = [
             { Mes: 'Enero', Producto: 'Botines Adidas Predator Elite FG', Categoria: 'Calzado', Cantidad_Vendida: 45, Ingresos_USD: 11250 },
@@ -716,10 +827,29 @@
                     scales: {
                         x: {
                             stacked: true,
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
                         },
                         y: {
                             stacked: true,
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
                         }
                     }
                 }
@@ -740,7 +870,10 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            position: 'bottom',
+                            labels: {
+                                color: '#94a3b8'
+                            }
                         }
                     }
                 }
@@ -763,7 +896,28 @@
                     indexAxis: 'y',
                     scales: {
                         x: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
                         }
                     }
                 }
@@ -787,8 +941,29 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
+                        x: {
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8'
+                            }
                         }
                     }
                 }
